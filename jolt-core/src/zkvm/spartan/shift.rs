@@ -546,6 +546,33 @@ impl<F: JoltField> Phase2Prover<F> {
             .map(|i| prefix_0_eval * suffix_0[i] + prefix_1_eval * suffix_1[i])
             .collect::<Vec<F>>()
             .into();
+        let scaling_factor: Option<F> = Some(EqPlusOnePolynomial::mle(
+            &params
+                .r_outer
+                .r
+                .iter()
+                .rev()
+                .copied()
+                .take(r_prefix.r.len())
+                .collect::<Vec<_>>(),
+            &r_prefix.r.iter().copied().rev().collect::<Vec<_>>(),
+        ));
+        let eq_plus_one_r_outer_ref: MultilinearPolynomial<F> = EqPlusOnePolynomial::evals(
+            &params
+                .r_outer
+                .r
+                .iter()
+                .rev()
+                .copied()
+                .skip(r_prefix.r.len())
+                .rev()
+                .collect::<Vec<_>>(),
+            scaling_factor,
+        )
+        .1
+        .into();
+
+        assert_eq!(eq_plus_one_r_outer_ref, eq_plus_one_r_outer);
 
         // Gen eq+1(r_product, (r_prefix, j)) for all j.
         let EqPlusOnePrefixSuffixPoly {
